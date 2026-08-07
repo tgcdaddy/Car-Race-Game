@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#05080a">
+  <title>Enduro Retro Road Challenge</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="app">
+    <canvas id="game" aria-label="Retro racing game"></canvas>
+
+    <section id="menu" class="screen">
+      <div class="titleBox">
+        <h1>ENDURO</h1>
+        <div class="subtitle">RETRO ROAD CHALLENGE</div>
+      </div>
+      <div class="menuButtons">
+        <button id="playBtn">PLAY</button>
+        <button id="howBtn">HOW TO PLAY</button>
+        <button id="soundBtn">SOUND: ON</button>
+        <button id="fullBtn">FULLSCREEN</button>
+      </div>
+      <div class="best">BEST SCORE <span id="menuBest">000000</span> · DAY <span id="menuDay">01</span></div>
+      <div class="credit">ORIGINAL HTML5 RETRO GAME</div>
+    </section>
+
+    <section id="how" class="screen hidden">
+      <div class="panel">
+        <h2>HOW TO PLAY</h2>
+        <p>Overtake traffic and reach the target before the stage ends.</p>
+        <div class="keys">
+          <div><b>← →</b><span>STEER</span></div>
+          <div><b>↑</b><span>ACCELERATE</span></div>
+          <div><b>↓</b><span>BRAKE</span></div>
+          <div><b>SPACE</b><span>PAUSE</span></div>
+        </div>
+        <p class="mobileHint">On phones, use the touch buttons. Hold a button for continuous control.</p>
+        <button id="backBtn">BACK</button>
+      </div>
+    </section>
+
+    <section id="pause" class="overlay hidden">
+      <div class="panel">
+        <h2>PAUSED</h2>
+        <button id="resumeBtn">RESUME</button>
+        <button id="restartBtn">RESTART</button>
+        <button id="pauseSoundBtn">SOUND: ON</button>
+        <button id="pauseMenuBtn">MAIN MENU</button>
+      </div>
+    </section>
+
+    <section id="stage" class="overlay hidden">
+      <div class="panel">
+        <h2>DAY COMPLETE!</h2>
+        <div id="stageStats"></div>
+        <button id="nextBtn">NEXT DAY</button>
+      </div>
+    </section>
+
+    <section id="gameover" class="overlay hidden">
+      <div class="panel">
+        <h2>GAME OVER</h2>
+        <div id="overStats"></div>
+        <button id="retryBtn">RETRY</button>
+        <button id="overMenuBtn">MAIN MENU</button>
+      </div>
+    </section>
+
+    <div id="touchControls" class="touchControls hidden">
+      <button data-key="left" class="touch left">◀</button>
+      <button data-key="right" class="touch right">▶</button>
+      <button data-key="brake" class="touch brake">▼</button>
+      <button data-key="accel" class="touch accel">▲</button>
+      <button id="touchPause" class="touch pause">Ⅱ</button>
+    </div>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>

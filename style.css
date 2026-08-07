@@ -1,0 +1,35 @@
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05080a;color:#fff;font-family:Arial,sans-serif;touch-action:none}
+body{display:flex;align-items:center;justify-content:center}
+#app{position:relative;width:100vw;height:100vh;overflow:hidden;background:#000}
+canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+.screen,.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.hidden{display:none!important}
+.screen{background:linear-gradient(#002a16 0 22%,#10139b 22% 55%,#003b09 55% 100%);z-index:5}
+.titleBox{background:#090909;border:3px solid #d21b1b;border-radius:12px;padding:8px 34px 10px;box-shadow:0 5px 0 #111;min-width:min(72vw,590px)}
+.titleBox h1{margin:0;font-size:clamp(56px,11vw,110px);letter-spacing:3px;font-weight:900;font-stretch:condensed}
+.subtitle{font-weight:900;background:#080808;border:3px solid #d21b1b;border-radius:8px;padding:4px 15px;font-size:clamp(14px,2.5vw,25px);display:inline-block;margin-top:6px}
+.menuButtons{display:flex;flex-direction:column;gap:12px;margin-top:34px;width:min(360px,70vw)}
+button{border:2px solid #eee;background:#161616;color:#fff;font:900 18px monospace;padding:13px 20px;border-radius:8px;cursor:pointer;box-shadow:0 4px 0 #555}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 #555}
+.best{margin-top:28px;font:700 16px monospace}
+.credit{position:absolute;bottom:18px;font:12px monospace;opacity:.7}
+.panel{background:rgba(8,8,8,.94);border:3px solid #d31b1b;border-radius:12px;padding:24px;min-width:min(420px,84vw);box-shadow:0 7px 0 #111}
+.panel h2{font:900 32px monospace;margin:0 0 18px}
+.panel p{font:16px monospace;line-height:1.5}
+.panel button{display:block;width:100%;margin:10px 0}
+.keys{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.keys div{border:2px solid #777;padding:10px}
+.keys b{display:block;font:900 20px monospace}
+.keys span{font:12px monospace;color:#bbb}
+.overlay{background:rgba(0,0,0,.62);z-index:8}
+.overlay .panel{max-width:430px}
+.touchControls{position:absolute;inset:0;z-index:7;pointer-events:none}
+.touch{position:absolute;width:68px;height:68px;border-radius:50%;padding:0;background:rgba(0,0,0,.38);border:2px solid rgba(255,255,255,.65);box-shadow:none;font-size:28px;pointer-events:auto;user-select:none;-webkit-user-select:none}
+.touch.left{left:max(18px,env(safe-area-inset-left));bottom:max(24px,env(safe-area-inset-bottom));}
+.touch.right{left:98px;bottom:max(24px,env(safe-area-inset-bottom));}
+.touch.accel{right:max(18px,env(safe-area-inset-right));bottom:106px}
+.touch.brake{right:max(18px,env(safe-area-inset-right));bottom:max(24px,env(safe-area-inset-bottom))}
+.touch.pause{right:max(18px,env(safe-area-inset-right));top:max(18px,env(safe-area-inset-top));width:48px;height:48px;font-size:20px}
+@media (min-width:800px){.touchControls{display:none!important}}
+@media (max-height:520px){.titleBox{transform:scale(.72);margin-top:-20px}.menuButtons{margin-top:5px;gap:6px}.menuButtons button{padding:8px}.best{margin-top:8px}}

@@ -1,81 +1,254 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="ar">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-  <meta name="theme-color" content="#05080a">
-  <title>Enduro Retro Road Challenge</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Enduro Mobile</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+body{
+    overflow:hidden;
+    background:#000;
+    touch-action:none;
+}
+canvas{
+    display:block;
+}
+#start{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    padding:20px 40px;
+    font-size:24px;
+    border-radius:15px;
+    border:none;
+}
+</style>
 </head>
+
 <body>
-  <main id="app">
-    <canvas id="game" aria-label="Retro racing game"></canvas>
 
-    <section id="menu" class="screen">
-      <div class="titleBox">
-        <h1>ENDURO</h1>
-        <div class="subtitle">RETRO ROAD CHALLENGE</div>
-      </div>
-      <div class="menuButtons">
-        <button id="playBtn">PLAY</button>
-        <button id="howBtn">HOW TO PLAY</button>
-        <button id="soundBtn">SOUND: ON</button>
-        <button id="fullBtn">FULLSCREEN</button>
-      </div>
-      <div class="best">BEST SCORE <span id="menuBest">000000</span> · DAY <span id="menuDay">01</span></div>
-      <div class="credit">ORIGINAL HTML5 RETRO GAME</div>
-    </section>
+<button id="start">START</button>
+<canvas id="game"></canvas>
 
-    <section id="how" class="screen hidden">
-      <div class="panel">
-        <h2>HOW TO PLAY</h2>
-        <p>Overtake traffic and reach the target before the stage ends.</p>
-        <div class="keys">
-          <div><b>← →</b><span>STEER</span></div>
-          <div><b>↑</b><span>ACCELERATE</span></div>
-          <div><b>↓</b><span>BRAKE</span></div>
-          <div><b>SPACE</b><span>PAUSE</span></div>
-        </div>
-        <p class="mobileHint">On phones, use the touch buttons. Hold a button for continuous control.</p>
-        <button id="backBtn">BACK</button>
-      </div>
-    </section>
+<script>
 
-    <section id="pause" class="overlay hidden">
-      <div class="panel">
-        <h2>PAUSED</h2>
-        <button id="resumeBtn">RESUME</button>
-        <button id="restartBtn">RESTART</button>
-        <button id="pauseSoundBtn">SOUND: ON</button>
-        <button id="pauseMenuBtn">MAIN MENU</button>
-      </div>
-    </section>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
 
-    <section id="stage" class="overlay hidden">
-      <div class="panel">
-        <h2>DAY COMPLETE!</h2>
-        <div id="stageStats"></div>
-        <button id="nextBtn">NEXT DAY</button>
-      </div>
-    </section>
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
 
-    <section id="gameover" class="overlay hidden">
-      <div class="panel">
-        <h2>GAME OVER</h2>
-        <div id="overStats"></div>
-        <button id="retryBtn">RETRY</button>
-        <button id="overMenuBtn">MAIN MENU</button>
-      </div>
-    </section>
+let running=false;
 
-    <div id="touchControls" class="touchControls hidden">
-      <button data-key="left" class="touch left">◀</button>
-      <button data-key="right" class="touch right">▶</button>
-      <button data-key="brake" class="touch brake">▼</button>
-      <button data-key="accel" class="touch accel">▲</button>
-      <button id="touchPause" class="touch pause">Ⅱ</button>
-    </div>
-  </main>
-  <script src="game.js"></script>
+let score=0;
+let speed=6;
+
+let laneWidth=canvas.width/3;
+
+let player={
+    lane:1,
+    x:laneWidth*1.5,
+    y:canvas.height-120,
+    width:45,
+    height:80
+};
+
+let enemies=[];
+
+let roadOffset=0;
+
+function drawRoad(){
+
+    ctx.fillStyle="#333";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+
+    // الطريق
+    ctx.fillStyle="#555";
+    ctx.fillRect(laneWidth/2,0,laneWidth*2,canvas.height);
+
+
+    // الخطوط
+    ctx.strokeStyle="white";
+    ctx.lineWidth=5;
+    ctx.setLineDash([40,40]);
+
+    for(let i=1;i<3;i++){
+        ctx.beginPath();
+        ctx.moveTo(laneWidth/2+i*laneWidth, -roadOffset);
+        ctx.lineTo(laneWidth/2+i*laneWidth, canvas.height);
+        ctx.stroke();
+    }
+
+    ctx.setLineDash([]);
+
+    roadOffset+=speed;
+
+    if(roadOffset>80)
+        roadOffset=0;
+}
+
+
+function drawCar(car,color){
+
+    ctx.fillStyle=color;
+
+    ctx.fillRect(
+        car.x-car.width/2,
+        car.y,
+        car.width,
+        car.height
+    );
+
+    ctx.fillStyle="black";
+    ctx.fillRect(
+        car.x-car.width/2+5,
+        car.y+15,
+        car.width-10,
+        20
+    );
+}
+
+
+function createEnemy(){
+
+    if(Math.random()<0.03){
+
+        let lane=Math.floor(Math.random()*3);
+
+        enemies.push({
+            lane:lane,
+            x:laneWidth/2+lane*laneWidth+laneWidth/2,
+            y:-100,
+            width:45,
+            height:80
+        });
+    }
+}
+
+
+function moveEnemies(){
+
+    enemies.forEach(e=>{
+        e.y+=speed;
+    });
+
+    enemies=enemies.filter(e=>e.y<canvas.height+100);
+}
+
+
+function collision(){
+
+    enemies.forEach(e=>{
+
+        if(
+            Math.abs(player.x-e.x)<40 &&
+            Math.abs(player.y-e.y)<70
+        ){
+            running=false;
+            alert("Game Over\nScore: "+Math.floor(score));
+            location.reload();
+        }
+
+    });
+
+}
+
+
+function update(){
+
+    if(!running)return;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    drawRoad();
+
+    createEnemy();
+    moveEnemies();
+
+    enemies.forEach(e=>drawCar(e,"red"));
+
+    drawCar(player,"blue");
+
+    score+=speed/10;
+
+    ctx.fillStyle="white";
+    ctx.font="25px Arial";
+    ctx.fillText(
+        "Score: "+Math.floor(score),
+        20,
+        40
+    );
+
+    speed+=0.002;
+
+    collision();
+
+    requestAnimationFrame(update);
+}
+
+
+// التحكم Swipe
+
+let startX=0;
+let startY=0;
+
+canvas.addEventListener("touchstart",e=>{
+    startX=e.touches[0].clientX;
+    startY=e.touches[0].clientY;
+});
+
+
+canvas.addEventListener("touchend",e=>{
+
+    let endX=e.changedTouches[0].clientX;
+    let endY=e.changedTouches[0].clientY;
+
+    let dx=endX-startX;
+    let dy=endY-startY;
+
+
+    if(Math.abs(dx)>50){
+
+        if(dx>0 && player.lane<2)
+            player.lane++;
+
+        if(dx<0 && player.lane>0)
+            player.lane--;
+
+        player.x=
+        laneWidth/2+
+        player.lane*laneWidth+
+        laneWidth/2;
+    }
+
+
+    // Boost
+    if(dy<-50)
+        speed+=2;
+
+});
+
+
+
+document.getElementById("start").onclick=()=>{
+
+    document.getElementById("start").style.display="none";
+
+    running=true;
+    update();
+
+};
+
+
+</script>
+
 </body>
 </html>

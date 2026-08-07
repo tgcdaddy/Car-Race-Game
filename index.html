@@ -2,16 +2,12 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Enduro Mobile</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Enduro Mobile V2</title>
 
 <style>
-*{
+html,body{
     margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-body{
     overflow:hidden;
     background:#000;
     touch-action:none;
@@ -24,10 +20,9 @@ canvas{
     top:50%;
     left:50%;
     transform:translate(-50%,-50%);
-    padding:20px 40px;
-    font-size:24px;
-    border-radius:15px;
-    border:none;
+    font-size:28px;
+    padding:20px 45px;
+    border-radius:20px;
 }
 </style>
 </head>
@@ -39,200 +34,274 @@ canvas{
 
 <script>
 
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+const c=document.getElementById("game");
+const ctx=c.getContext("2d");
 
-canvas.width=window.innerWidth;
-canvas.height=window.innerHeight;
+c.width=innerWidth;
+c.height=innerHeight;
 
-let running=false;
+let playing=false;
 
 let score=0;
-let speed=6;
+let speed=7;
+let stage=1;
 
-let laneWidth=canvas.width/3;
+let roadY=0;
+
+let lanes=3;
+let lane=c.width/lanes;
 
 let player={
     lane:1,
-    x:laneWidth*1.5,
-    y:canvas.height-120,
-    width:45,
-    height:80
+    x:lane*1.5,
+    y:c.height-150,
 };
+
 
 let enemies=[];
 
-let roadOffset=0;
 
-function drawRoad(){
+// رسم الطريق
 
-    ctx.fillStyle="#333";
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+function road(){
+
+    let sky=stage%4;
+
+    if(sky==0)
+        ctx.fillStyle="#001";
+    else if(sky==1)
+        ctx.fillStyle="#87ceeb";
+    else if(sky==2)
+        ctx.fillStyle="#555";
+    else
+        ctx.fillStyle="#ddd";
+
+    ctx.fillRect(0,0,c.width,c.height);
 
 
     // الطريق
-    ctx.fillStyle="#555";
-    ctx.fillRect(laneWidth/2,0,laneWidth*2,canvas.height);
+    ctx.fillStyle="#333";
+
+    ctx.beginPath();
+    ctx.moveTo(lane/2,0);
+    ctx.lineTo(c.width-lane/2,0);
+    ctx.lineTo(c.width*0.85,c.height);
+    ctx.lineTo(c.width*0.15,c.height);
+    ctx.fill();
 
 
-    // الخطوط
+    // خطوط الطريق
+
     ctx.strokeStyle="white";
-    ctx.lineWidth=5;
-    ctx.setLineDash([40,40]);
+    ctx.lineWidth=4;
+    ctx.setLineDash([40,50]);
 
     for(let i=1;i<3;i++){
+
+        let top=lane/2+i*lane;
+
         ctx.beginPath();
-        ctx.moveTo(laneWidth/2+i*laneWidth, -roadOffset);
-        ctx.lineTo(laneWidth/2+i*laneWidth, canvas.height);
+        ctx.moveTo(top,0);
+        ctx.lineTo(
+            c.width*0.15+i*(c.width*0.7/3),
+            c.height
+        );
         ctx.stroke();
     }
 
     ctx.setLineDash([]);
 
-    roadOffset+=speed;
-
-    if(roadOffset>80)
-        roadOffset=0;
 }
 
 
-function drawCar(car,color){
+
+// سيارة
+
+function car(x,y,color){
 
     ctx.fillStyle=color;
 
+    ctx.beginPath();
+    ctx.roundRect(
+        x-25,
+        y,
+        50,
+        90,
+        12
+    );
+    ctx.fill();
+
+
+    ctx.fillStyle="#111";
+
     ctx.fillRect(
-        car.x-car.width/2,
-        car.y,
-        car.width,
-        car.height
+        x-17,
+        y+15,
+        34,
+        25
     );
 
+
     ctx.fillStyle="black";
+
     ctx.fillRect(
-        car.x-car.width/2+5,
-        car.y+15,
-        car.width-10,
-        20
+        x-32,
+        y+20,
+        7,
+        25
     );
+
+    ctx.fillRect(
+        x+25,
+        y+20,
+        7,
+        25
+    );
+
 }
 
 
-function createEnemy(){
+// إنشاء سيارات
 
-    if(Math.random()<0.03){
+function spawn(){
 
-        let lane=Math.floor(Math.random()*3);
+    if(Math.random()<0.025){
+
+        let l=Math.floor(Math.random()*3);
 
         enemies.push({
-            lane:lane,
-            x:laneWidth/2+lane*laneWidth+laneWidth/2,
-            y:-100,
-            width:45,
-            height:80
+            lane:l,
+            x:lane/2+l*lane+lane/2,
+            y:-120
         });
+
     }
 }
 
 
-function moveEnemies(){
+// حركة السيارات
+
+function enemiesMove(){
 
     enemies.forEach(e=>{
         e.y+=speed;
     });
 
-    enemies=enemies.filter(e=>e.y<canvas.height+100);
+    enemies=enemies.filter(e=>e.y<c.height+200);
 }
 
 
-function collision(){
+// تصادم
 
-    enemies.forEach(e=>{
+function hit(){
+
+    for(let e of enemies){
 
         if(
-            Math.abs(player.x-e.x)<40 &&
-            Math.abs(player.y-e.y)<70
+            e.lane==player.lane &&
+            Math.abs(e.y-player.y)<80
         ){
-            running=false;
-            alert("Game Over\nScore: "+Math.floor(score));
+
+            alert(
+            "Game Over\nScore: "+
+            Math.floor(score)
+            );
+
             location.reload();
         }
-
-    });
-
+    }
 }
 
 
-function update(){
+// اللعبة
 
-    if(!running)return;
+function loop(){
 
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+if(!playing)return;
 
-    drawRoad();
+ctx.clearRect(0,0,c.width,c.height);
 
-    createEnemy();
-    moveEnemies();
+road();
 
-    enemies.forEach(e=>drawCar(e,"red"));
+spawn();
+enemiesMove();
 
-    drawCar(player,"blue");
-
-    score+=speed/10;
-
-    ctx.fillStyle="white";
-    ctx.font="25px Arial";
-    ctx.fillText(
-        "Score: "+Math.floor(score),
-        20,
-        40
-    );
-
-    speed+=0.002;
-
-    collision();
-
-    requestAnimationFrame(update);
-}
-
-
-// التحكم Swipe
-
-let startX=0;
-let startY=0;
-
-canvas.addEventListener("touchstart",e=>{
-    startX=e.touches[0].clientX;
-    startY=e.touches[0].clientY;
+enemies.forEach(e=>{
+    car(e.x,e.y,"red");
 });
 
 
-canvas.addEventListener("touchend",e=>{
-
-    let endX=e.changedTouches[0].clientX;
-    let endY=e.changedTouches[0].clientY;
-
-    let dx=endX-startX;
-    let dy=endY-startY;
+car(player.x,player.y,"blue");
 
 
-    if(Math.abs(dx)>50){
+score+=0.1;
 
-        if(dx>0 && player.lane<2)
-            player.lane++;
-
-        if(dx<0 && player.lane>0)
-            player.lane--;
-
-        player.x=
-        laneWidth/2+
-        player.lane*laneWidth+
-        laneWidth/2;
-    }
+if(score%500<0.1)
+    stage++;
 
 
-    // Boost
-    if(dy<-50)
-        speed+=2;
+if(stage>4)
+    stage=1;
+
+
+ctx.fillStyle="white";
+ctx.font="24px Arial";
+
+ctx.fillText(
+"Score: "+Math.floor(score),
+20,35
+);
+
+ctx.fillText(
+"Stage: "+stage,
+20,70
+);
+
+
+speed+=0.001;
+
+hit();
+
+requestAnimationFrame(loop);
+
+}
+
+
+// Swipe
+
+let sx,sy;
+
+c.addEventListener("touchstart",e=>{
+sx=e.touches[0].clientX;
+sy=e.touches[0].clientY;
+});
+
+
+c.addEventListener("touchend",e=>{
+
+let dx=e.changedTouches[0].clientX-sx;
+let dy=e.changedTouches[0].clientY-sy;
+
+
+if(Math.abs(dx)>50){
+
+if(dx>0 && player.lane<2)
+player.lane++;
+
+if(dx<0 && player.lane>0)
+player.lane--;
+
+player.x=
+lane/2+
+player.lane*lane+
+lane/2;
+
+}
+
+
+if(dy<-60)
+speed+=3;
+
 
 });
 
@@ -240,10 +309,11 @@ canvas.addEventListener("touchend",e=>{
 
 document.getElementById("start").onclick=()=>{
 
-    document.getElementById("start").style.display="none";
+document.getElementById("start").style.display="none";
 
-    running=true;
-    update();
+playing=true;
+
+loop();
 
 };
 
